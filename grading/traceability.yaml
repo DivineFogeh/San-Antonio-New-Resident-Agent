@@ -1,0 +1,132 @@
+# grading/traceability.yaml
+# Maps each user story to its spec section, source modules, and tests
+
+stories:
+  US-01:
+    title: Ask about CPS Energy rates
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/agent.py
+      - crawler/sa_resident_agent/knowledge/retriever.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us01_cps_rates
+    manual_steps: docs/STORIES.md#us-01
+
+  US-02:
+    title: Ask about SAWS water service requirements
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/agent.py
+      - crawler/sa_resident_agent/knowledge/retriever.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us02_saws_docs
+    manual_steps: docs/STORIES.md#us-02
+
+  US-03:
+    title: Ask about City of San Antonio permits
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/agent.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us03_city_registration
+    manual_steps: docs/STORIES.md#us-03
+
+  US-04:
+    title: Get form field guidance
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/intent.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us04_form_help
+    manual_steps: docs/STORIES.md#us-04
+
+  US-05:
+    title: Check setup progress checklist
+    spec_section: "4.1 Backend API - GET /api/checklist/{user_id}"
+    modules:
+      - backend/app/api/routes/checklist.py
+      - backend/app/models.py
+      - backend/app/cache.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us05_status
+    manual_steps: docs/STORIES.md#us-05
+
+  US-06:
+    title: Reset session and start over
+    spec_section: "4.1 Backend API - POST /api/services/agent/reset"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/context.py
+    tests:
+      - crawler/tests/user_stories/test_user_stories.py::test_us06_reset
+    manual_steps: docs/STORIES.md#us-06
+
+  US-07:
+    title: Handle unanswerable question gracefully
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/services/agent.py
+      - crawler/sa_resident_agent/agent/agent.py
+      - crawler/sa_resident_agent/agent/prompts.py
+    tests:
+      - crawler/tests/edge/test_edge_cases.py::test_unanswerable_question
+    manual_steps: docs/STORIES.md#us-07
+
+  US-08:
+    title: Handle empty message input
+    spec_section: "4.1 Backend API - POST /api/services/agent/chat"
+    modules:
+      - backend/app/api/routes/services.py
+      - backend/app/schemas.py
+    tests:
+      - crawler/tests/edge/test_edge_cases.py::test_empty_message
+    manual_steps: docs/STORIES.md#us-08
+
+  US-09:
+    title: Create user session and seed checklist
+    spec_section: "4.1 Backend API - POST /api/user/session"
+    modules:
+      - backend/app/api/routes/user.py
+      - backend/app/models.py
+      - backend/app/db.py
+    tests:
+      - crawler/tests/integration/test_agent.py::test_user_session
+    manual_steps: docs/STORIES.md#us-09
+
+  US-10:
+    title: Mark checklist item complete
+    spec_section: "4.1 Backend API - PATCH /api/checklist/{user_id}"
+    modules:
+      - backend/app/api/routes/checklist.py
+      - backend/app/models.py
+      - backend/app/cache.py
+    tests:
+      - crawler/tests/integration/test_agent.py::test_checklist_update
+    manual_steps: docs/STORIES.md#us-10
+
+  US-11:
+    title: Complete CPS Energy enrollment form
+    spec_section: "2.3 Frontend"
+    modules:
+      - frontend/sa_new_resident_agent.py
+      - backend/app/api/routes/services.py
+    tests: []
+    manual_steps: docs/STORIES.md#us-11
+
+  US-12:
+    title: Complete SAWS water enrollment form
+    spec_section: "2.3 Frontend"
+    modules:
+      - frontend/sa_new_resident_agent.py
+      - backend/app/api/routes/services.py
+    tests: []
+    manual_steps: docs/STORIES.md#us-12

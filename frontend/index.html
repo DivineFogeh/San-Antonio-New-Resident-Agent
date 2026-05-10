@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SA New Resident Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;--bg2:#111827;--bg3:#1a2235;--bg4:#1e2a42;
+  --border:#2a3a55;--border2:#3a4f6e;
+  --text:#e8eef8;--text2:#94a3b8;--text3:#64748b;
+  --teal:#0ea5e9;--teal2:#38bdf8;--teal-dim:#0ea5e920;
+  --green:#10b981;--green-dim:#10b98115;
+  --amber:#f59e0b;--amber-dim:#f59e0b15;
+  --red:#ef4444;--red-dim:#ef444415;
+  --purple:#8b5cf6;
+  --radius:12px;--radius-sm:8px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* Background grid */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.3;pointer-events:none;z-index:0}
+
+/* Layout */
+.app{position:relative;z-index:1;display:grid;grid-template-columns:280px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+
+/* Header */
+.header{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:20px 28px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.logo-text{font-size:16px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.header-status{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.sidebar-section{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:8px 12px 4px;font-family:var(--mono)}
+
+/* Progress card */
+.progress-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:8px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.progress-label{font-size:12px;font-weight:500;color:var(--text2)}
+.progress-pct{font-size:13px;font-weight:600;color:var(--teal);font-family:var(--mono)}
+.progress-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width .5s ease}
+
+/* Service nav items */
+.service-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid transparent;transition:all .15s}
+.service-item:hover{background:var(--bg3);border-color:var(--border)}
+.service-item.active{background:var(--teal-dim);border-color:var(--teal)40}
+.service-emoji{font-size:18px;width:32px;text-align:center;flex-shrink:0}
+.service-info{flex:1;min-width:0}
+.service-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.service-desc{font-size:11px;color:var(--text3)}
+.service-badge{font-size:10px;padding:2px 7px;border-radius:20px;flex-shrink:0;font-family:var(--mono);font-weight:500}
+.badge-done{background:var(--green-dim);color:var(--green);border:1px solid var(--green)40}
+.badge-active{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal)40}
+.badge-pending{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)40}
+
+/* Docs needed */
+.docs-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:8px}
+.docs-title{font-size:11px;font-weight:600;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.doc-item{font-size:12px;color:var(--text3);padding:3px 0;display:flex;align-items:center;gap:6px}
+.doc-item::before{content:'›';color:var(--text3)}
+
+/* Chat nav */
+.chat-nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid transparent;transition:all .15s;margin-top:4px}
+.chat-nav:hover{background:var(--bg3);border-color:var(--border)}
+.chat-nav.active{background:var(--purple)20;border-color:var(--purple)40}
+.chat-nav-icon{font-size:18px;width:32px;text-align:center}
+.chat-nav-label{font-size:13px;font-weight:500;color:var(--text)}
+
+/* Main content */
+.main{padding:28px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;align-self:flex-start}
+.tab-btn{padding:7px 18px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--text3);border:none;background:transparent;font-family:var(--font);font-weight:500;transition:all .15s}
+.tab-btn.active{background:var(--bg4);color:var(--text);border:1px solid var(--border)}
+
+/* Panel */
+.panel{display:none}
+.panel.active{display:flex;flex-direction:column;gap:16px}
+
+/* Form card */
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.form-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.form-header-icon{font-size:28px}
+.form-header-info h2{font-size:16px;font-weight:600;color:var(--text)}
+.form-header-info p{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.step-dots{display:flex;gap:6px;margin-left:auto}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--mono);transition:all .2s}
+.step-dot-done{background:var(--green);color:#fff}
+.step-dot-active{background:var(--teal-dim);color:var(--teal);border:1.5px solid var(--teal)}
+.step-dot-inactive{background:var(--bg4);color:var(--text3);border:1px solid var(--border)}
+
+.form-body{padding:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;font-weight:500;color:var(--text2)}
+.req{color:var(--amber)}
+.hint{font-size:11px;color:var(--text3);margin-top:2px}
+input,select{width:100%;padding:9px 12px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font);transition:border-color .15s;outline:none}
+input:focus,select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim)}
+input::placeholder{color:var(--text3)}
+select option{background:var(--bg3)}
+.error-text{font-size:11px;color:var(--red);margin-top:3px}
+.field-error input,.field-error select{border-color:var(--red)}
+
+.form-nav{display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--border)}
+.step-info{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.btn{padding:9px 20px;border-radius:var(--radius-sm);font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font);font-weight:500;transition:all .15s}
+.btn:hover{border-color:var(--border2);background:var(--bg4)}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal2);border-color:var(--teal2)}
+
+/* Success screen */
+.success-screen{text-align:center;padding:48px 24px}
+.success-icon{font-size:56px;margin-bottom:16px;display:block}
+.success-title{font-size:20px;font-weight:600;color:var(--green);margin-bottom:8px}
+.success-sub{font-size:13px;color:var(--text3);line-height:1.7}
+.success-sub b{color:var(--text)}
+
+/* Error banner */
+.error-banner{background:var(--red-dim);border:1px solid var(--red)40;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px}
+.error-banner p{font-size:12px;color:var(--red)}
+
+/* Chat */
+.chat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;height:520px}
+.chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-header-icon{font-size:20px}
+.chat-header-info{flex:1}
+.chat-header-info h3{font-size:14px;font-weight:600}
+.chat-header-info p{font-size:11px;color:var(--text3)}
+.model-badge{font-size:10px;padding:3px 8px;border-radius:20px;background:var(--purple)20;color:var(--purple);border:1px solid var(--purple)40;font-family:var(--mono)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.msg{display:flex;flex-direction:column;gap:3px}
+.msg-user{align-items:flex-end}
+.msg-bot{align-items:flex-start}
+.bubble{padding:10px 14px;border-radius:12px;font-size:13px;max-width:82%;line-height:1.6}
+.bubble-user{background:var(--teal);color:#fff;border-radius:12px 12px 3px 12px}
+.bubble-bot{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:12px 12px 12px 3px}
+.bubble-bot.thinking{color:var(--text3);font-style:italic}
+.msg-time{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-top:1px solid var(--border)}
+.quick-btn{padding:5px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.quick-btn:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-dim)}
+.chat-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.chat-input-row input{flex:1}
+.chat-send{padding:9px 16px;background:var(--teal);border:none;border-radius:var(--radius-sm);color:#fff;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:500;white-space:nowrap;transition:background .15s}
+.chat-send:hover{background:var(--teal2)}
+.chat-send:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed}
+
+/* Welcome */
+.welcome{text-align:center;padding:32px 16px;color:var(--text3)}
+.welcome-icon{font-size:32px;margin-bottom:10px}
+.welcome p{font-size:13px}
+
+/* Source chips */
+.sources{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.source-chip{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--bg4);color:var(--text3);border:1px solid var(--border);font-family:var(--mono)}
+
+/* Notification */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--text);z-index:999;transform:translateY(100px);opacity:0;transition:all .3s;max-width:280px}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.success{border-color:var(--green)60}
+.notif.error{border-color:var(--red)60}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🏙️</div>
+      <div>
+        <div class="logo-text">SA New Resident Agent</div>
+        <div class="logo-sub">CS 6263 · NLP & Agentic AI</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-label">Setup progress</span>
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sidebar-section">Services</div>
+    <div class="service-item active" id="nav-cps" onclick="selectService('cps')">
+      <div class="service-emoji">⚡</div>
+      <div class="service-info">
+        <div class="service-name">CPS Energy</div>
+        <div class="service-desc">Electric service</div>
+      </div>
+      <span class="service-badge badge-pending" id="badge-cps">Pending</span>
+    </div>
+    <div class="service-item" id="nav-saws" onclick="selectService('saws')">
+      <div class="service-emoji">💧</div>
+      <div class="service-info">
+        <div class="service-name">SAWS Water</div>
+        <div class="service-desc">Water & sewer</div>
+      </div>
+      <span class="service-badge badge-pending" id="badge-saws">Pending</span>
+    </div>
+    <div class="service-item" id="nav-city" onclick="selectService('city')">
+      <div class="service-emoji">🏛️</div>
+      <div class="service-info">
+        <div class="service-name">City of SA</div>
+        <div class="service-desc">Registration & permits</div>
+      </div>
+      <span class="service-badge badge-pending" id="badge-city">Pending</span>
+    </div>
+
+    <div class="sidebar-section" style="margin-top:8px">Chat</div>
+    <div class="chat-nav" id="nav-chat" onclick="selectChat()">
+      <div class="chat-nav-icon">🤖</div>
+      <div class="chat-nav-label">AI Assistant</div>
+    </div>
+
+    <div class="docs-card">
+      <div class="docs-title">📋 Documents needed</div>
+      <div class="doc-item">Photo ID or Passport</div>
+      <div class="doc-item">Last 4 of SSN (CPS only)</div>
+      <div class="doc-item">New SA address</div>
+      <div class="doc-item">Move-in date</div>
+      <div class="doc-item">Email address</div>
+    </div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <!-- Content rendered by JS -->
+  </main>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const BACKEND = 'http://localhost:8000';
+const SESSION_ID = crypto.randomUUID();
+let userId = null;
+let completedServices = {};
+let currentService = 'cps';
+let currentView = 'form'; // 'form' or 'chat'
+let chatHistory = [];
+let chatBusy = false;
+
+const SERVICES = {
+  cps: {
+    name: 'CPS Energy', icon: '⚡', desc: 'Electric service setup',
+    steps: [
+      { title: 'Personal Information', fields: [
+        {id:'firstName',label:'First Name',type:'text',required:true,placeholder:'Maria'},
+        {id:'lastName',label:'Last Name',type:'text',required:true,placeholder:'Garcia'},
+        {id:'ssn',label:'Last 4 of SSN',type:'text',required:true,placeholder:'1234',hint:'Used for identity verification',pattern:/^\d{4}$/,patternMsg:'Enter exactly 4 digits',maxlength:4},
+        {id:'dob',label:'Date of Birth',type:'date',required:true},
+      ]},
+      { title: 'Service Address', fields: [
+        {id:'address',label:'Street Address',type:'text',required:true,placeholder:'1234 Main St'},
+        {id:'apt',label:'Apt / Unit',type:'text',required:false,placeholder:'Apt 2B'},
+        {id:'zip',label:'ZIP Code',type:'text',required:true,placeholder:'78201',pattern:/^\d{5}$/,patternMsg:'Enter a valid 5-digit ZIP',maxlength:5},
+        {id:'moveInDate',label:'Move-in Date',type:'date',required:true},
+      ]},
+      { title: 'Contact & Plan', fields: [
+        {id:'email',label:'Email Address',type:'email',required:true,placeholder:'you@email.com'},
+        {id:'phone',label:'Phone Number',type:'tel',required:true,placeholder:'(210) 555-0100'},
+        {id:'plan',label:'Rate Plan',type:'select',required:true,options:['Standard Residential','Budget Billing','Time-of-Use (TOU)','Green Power Option']},
+        {id:'paperless',label:'Paperless Billing',type:'select',required:true,options:['Yes — email only','No — mail statements']},
+      ]},
+    ]
+  },
+  saws: {
+    name: 'SAWS Water', icon: '💧', desc: 'Water & sewer account',
+    steps: [
+      { title: 'Account Holder', fields: [
+        {id:'firstName',label:'First Name',type:'text',required:true,placeholder:'Maria'},
+        {id:'lastName',label:'Last Name',type:'text',required:true,placeholder:'Garcia'},
+        {id:'idType',label:'ID Type',type:'select',required:true,options:["Driver's License",'State ID','Passport','Military ID']},
+        {id:'idNumber',label:'ID Number',type:'text',required:true,placeholder:'TX12345678'},
+      ]},
+      { title: 'Service Address', fields: [
+        {id:'address',label:'Street Address',type:'text',required:true,placeholder:'1234 Main St'},
+        {id:'zip',label:'ZIP Code',type:'text',required:true,placeholder:'78201',pattern:/^\d{5}$/,patternMsg:'Enter a valid 5-digit ZIP',maxlength:5},
+        {id:'propType',label:'Property Type',type:'select',required:true,options:['Single Family','Apartment / Condo','Mobile Home','Duplex']},
+        {id:'startDate',label:'Service Start Date',type:'date',required:true},
+      ]},
+      { title: 'Billing Preferences', fields: [
+        {id:'email',label:'Billing Email',type:'email',required:true,placeholder:'you@email.com'},
+        {id:'phone',label:'Phone Number',type:'tel',required:true,placeholder:'(210) 555-0100'},
+        {id:'autopay',label:'AutoPay',type:'select',required:true,options:['Enroll in AutoPay','Manual payments']},
+        {id:'assistance',label:'Low-Income Assistance?',type:'select',required:false,options:['No','Yes — apply for SAWS Cares']},
+      ]},
+    ]
+  },
+  city: {
+    name: 'City of SA', icon: '🏛️', desc: 'Permits & city registration',
+    steps: [
+      { title: 'Resident Registration', fields: [
+        {id:'firstName',label:'First Name',type:'text',required:true,placeholder:'Maria'},
+        {id:'lastName',label:'Last Name',type:'text',required:true,placeholder:'Garcia'},
+        {id:'email',label:'Email Address',type:'email',required:true,placeholder:'you@email.com'},
+        {id:'phone',label:'Phone Number',type:'tel',required:true,placeholder:'(210) 555-0100'},
+      ]},
+      { title: 'Home Address', fields: [
+        {id:'address',label:'Street Address',type:'text',required:true,placeholder:'1234 Main St'},
+        {id:'zip',label:'ZIP Code',type:'text',required:true,placeholder:'78201',pattern:/^\d{5}$/,patternMsg:'Enter a valid 5-digit ZIP',maxlength:5},
+        {id:'district',label:'Council District',type:'select',required:false,options:['Not sure','District 1','District 2','District 3','District 4','District 5','District 6','District 7','District 8','District 9','District 10']},
+        {id:'residency',label:'Residency Type',type:'select',required:true,options:['Renter','Homeowner','Moving in']},
+      ]},
+      { title: 'City Services', fields: [
+        {id:'trash',label:'Trash Pickup Day',type:'select',required:true,options:['Monday','Tuesday','Wednesday','Thursday','Friday']},
+        {id:'recycling',label:'Recycling Bin',type:'select',required:true,options:['Small (18 gal)','Large (96 gal)']},
+        {id:'voterReg',label:'Voter Registration',type:'select',required:false,options:['Already registered','Register now via VOTE.ORG','Skip for now']},
+        {id:'alerts',label:'City Alerts',type:'select',required:false,options:['Opt in','Opt out']},
+      ]},
+    ]
+  }
+};
+
+// Form state per service
+const formState = {
+  cps: {step:0, data:{}},
+  saws: {step:0, data:{}},
+  city: {step:0, data:{}}
+};
+
+// ── Init ─────────────────────────────────────────────────────────
+async function init() {
+  await checkBackend();
+  await createUser();
+  renderForm('cps');
+}
+
+async function checkBackend() {
+  try {
+    const r = await fetch(`${BACKEND}/`);
+    const d = await r.json();
+    document.getElementById('statusDot').style.background = 'var(--green)';
+    document.getElementById('statusText').textContent = 'Backend connected';
+  } catch {
+    document.getElementById('statusDot').style.background = 'var(--red)';
+    document.getElementById('statusText').textContent = 'Backend offline';
+  }
+}
+
+async function createUser() {
+  try {
+    const r = await fetch(`${BACKEND}/api/user/session`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name:'Demo User', email:`demo-${Date.now()}@test.com`, address:'123 Main St, San Antonio, TX'})
+    });
+    const d = await r.json();
+    userId = d.id;
+  } catch(e) {
+    console.error('Could not create user:', e);
+  }
+}
+
+// ── Navigation ───────────────────────────────────────────────────
+function selectService(svc) {
+  currentService = svc;
+  currentView = 'form';
+  document.querySelectorAll('.service-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.chat-nav').forEach(el => el.classList.remove('active'));
+  document.getElementById(`nav-${svc}`).classList.add('active');
+  if (completedServices[svc]) {
+    renderSuccess(svc);
+  } else {
+    renderForm(svc);
+  }
+}
+
+function selectChat() {
+  currentView = 'chat';
+  document.querySelectorAll('.service-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.chat-nav').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-chat').classList.add('active');
+  renderChat();
+}
+
+// ── Form Rendering ───────────────────────────────────────────────
+function renderForm(svc) {
+  const s = SERVICES[svc];
+  const state = formState[svc];
+  const step = s.steps[state.step];
+  const total = s.steps.length;
+
+  const dots = s.steps.map((_, i) => {
+    let cls = i < state.step ? 'step-dot-done' : i === state.step ? 'step-dot-active' : 'step-dot-inactive';
+    return `<div class="step-dot ${cls}">${i < state.step ? '✓' : i+1}</div>`;
+  }).join('');
+
+  const fields = step.fields.map(f => {
+    const req = f.required ? '<span class="req">*</span>' : '';
+    const hint = f.hint ? `<div class="hint">${f.hint}</div>` : '';
+    const val = state.data[f.id] || '';
+    let input = '';
+    if (f.type === 'select') {
+      const opts = ['', ...(f.options||[])].map(o => `<option value="${o}" ${o===val?'selected':''}>${o||'Select...'}</option>`).join('');
+      input = `<select id="f-${f.id}">${opts}</select>`;
+    } else {
+      const extra = f.maxlength ? `maxlength="${f.maxlength}"` : '';
+      input = `<input type="${f.type}" id="f-${f.id}" placeholder="${f.placeholder||''}" value="${val}" ${extra}>`;
+    }
+    const full = ['address','email'].includes(f.id) ? 'full' : '';
+    return `<div class="form-group ${full}" id="fg-${f.id}">${hint}<label>${f.label} ${req}</label>${input}<div class="error-text" id="err-${f.id}"></div></div>`;
+  }).join('');
+
+  const backLabel = state.step > 0 ? '← Previous' : '';
+  const nextLabel = state.step === total - 1 ? 'Submit ✓' : 'Next →';
+
+  document.getElementById('mainContent').innerHTML = `
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-header-icon">${s.icon}</div>
+        <div class="form-header-info">
+          <h2>${s.name}</h2>
+          <p>${step.title} · Step ${state.step+1} of ${total}</p>
+        </div>
+        <div class="step-dots">${dots}</div>
+      </div>
+      <div class="form-body">
+        <div id="errorBanner"></div>
+        <div class="form-grid">${fields}</div>
+        <div class="form-nav">
+          <div>${backLabel ? `<button class="btn" onclick="goBack('${svc}')">${backLabel}</button>` : '<span></span>'}</div>
+          <div class="step-info">Step ${state.step+1} / ${total}</div>
+          <button class="btn btn-primary" onclick="goNext('${svc}')">${nextLabel}</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderSuccess(svc) {
+  const s = SERVICES[svc];
+  document.getElementById('mainContent').innerHTML = `
+    <div class="form-card">
+      <div class="success-screen">
+        <span class="success-icon">🎉</span>
+        <div class="success-title">${s.name} Submitted!</div>
+        <p class="success-sub">Your application has been recorded and <b>synced to backend ✅</b>.<br>You can now proceed to the next service.</p>
+        <br>
+        <button class="btn btn-primary" onclick="selectChat()" style="margin-top:12px">Ask AI about next steps →</button>
+      </div>
+    </div>`;
+}
+
+// ── Form Navigation ──────────────────────────────────────────────
+function validateStep(svc) {
+  const s = SERVICES[svc];
+  const state = formState[svc];
+  const step = s.steps[state.step];
+  let valid = true;
+
+  step.fields.forEach(f => {
+    const el = document.getElementById(`f-${f.id}`);
+    const errEl = document.getElementById(`err-${f.id}`);
+    const fgEl = document.getElementById(`fg-${f.id}`);
+    if (!el) return;
+    const v = el.value.trim();
+    let err = '';
+
+    if (f.required && !v) err = `${f.label} is required`;
+    else if (v && f.pattern && !f.pattern.test(v)) err = f.patternMsg || 'Invalid format';
+    else if (v && f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) err = 'Enter a valid email address';
+    else if (v && f.type === 'tel' && v.replace(/\D/g,'').length < 7) err = 'Enter a valid phone number';
+
+    errEl.textContent = err;
+    fgEl.classList.toggle('field-error', !!err);
+    if (err) valid = false;
+    else state.data[f.id] = el.value;
+  });
+  return valid;
+}
+
+function goNext(svc) {
+  if (!validateStep(svc)) return;
+  const s = SERVICES[svc];
+  const state = formState[svc];
+
+  if (state.step < s.steps.length - 1) {
+    state.step++;
+    renderForm(svc);
+  } else {
+    submitForm(svc);
+  }
+}
+
+function goBack(svc) {
+  const state = formState[svc];
+  if (state.step > 0) { state.step--; renderForm(svc); }
+}
+
+async function submitForm(svc) {
+  const flat = {...formState[svc].data};
+  completedServices[svc] = flat;
+
+  // Submit to backend
+  try {
+    await fetch(`${BACKEND}/api/services/submit/${svc}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({user_id: userId, service: svc, form_data: flat})
+    });
+    if (userId) {
+      for (const step of ['account','billing','docs']) {
+        await fetch(`${BACKEND}/api/checklist/${userId}`, {
+          method:'PATCH', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({service: svc, step, completed: true})
+        });
+      }
+    }
+  } catch(e) { console.warn('Backend sync failed:', e); }
+
+  // Update UI
+  updateProgress();
+  updateBadge(svc, 'done');
+  renderSuccess(svc);
+  showNotif(`${SERVICES[svc].name} submitted successfully!`, 'success');
+}
+
+// ── Progress ─────────────────────────────────────────────────────
+function updateProgress() {
+  const done = Object.keys(completedServices).length;
+  const pct = Math.round(done / 3 * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateBadge(svc, type) {
+  const badge = document.getElementById(`badge-${svc}`);
+  badge.className = `service-badge badge-${type}`;
+  badge.textContent = type === 'done' ? 'Done' : type === 'active' ? 'In progress' : 'Pending';
+}
+
+// ── Chat ─────────────────────────────────────────────────────────
+function renderChat() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="chat-card">
+      <div class="chat-header">
+        <div class="chat-header-icon">🤖</div>
+        <div class="chat-header-info">
+          <h3>AI Assistant</h3>
+          <p>Powered by UTSA Llama 3.3 70B · RAG-grounded answers</p>
+        </div>
+        <span class="model-badge">llama-3.3-70b</span>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="quick-btns">
+        ${['What documents do I need?','How long does CPS setup take?','Average water bill?','Is there a deposit required?','Tell me about SAWS Cares'].map(q =>
+          `<button class="quick-btn" onclick="sendQuick('${q}')">${q}</button>`
+        ).join('')}
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask about rates, documents, timelines..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" id="sendBtn" onclick="sendChat()">Send →</button>
+      </div>
+    </div>`;
+  renderMessages();
+}
+
+function renderMessages() {
+  const el = document.getElementById('chatMessages');
+  if (!el) return;
+  if (!chatHistory.length) {
+    el.innerHTML = `<div class="welcome"><div class="welcome-icon">👋</div><p>Ask me anything about San Antonio utility setup.<br>I have real-time knowledge about CPS Energy, SAWS, and the City of SA.</p></div>`;
+    return;
+  }
+  el.innerHTML = chatHistory.map(m => {
+    if (m.role === 'user') return `<div class="msg msg-user"><div class="bubble bubble-user">${m.content}</div></div>`;
+    const sources = m.sources?.length ? `<div class="sources">${m.sources.map(s=>`<span class="source-chip">${s.provider}</span>`).join('')}</div>` : '';
+    return `<div class="msg msg-bot"><div class="bubble bubble-bot">${m.content.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>')}</div>${sources}</div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function sendQuick(q) {
+  document.getElementById('chatInput').value = q;
+  sendChat();
+}
+
+async function sendChat() {
+  if (chatBusy) return;
+  const input = document.getElementById('chatInput');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+  input.value = '';
+  chatBusy = true;
+
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '...'; }
+
+  chatHistory.push({role:'user', content: msg});
+  chatHistory.push({role:'assistant', content:'Thinking...', thinking:true});
+  renderMessages();
+
+  try {
+    const r = await fetch(`${BACKEND}/api/services/agent/chat`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({session_id: SESSION_ID, message: msg})
+    });
+    const d = await r.json();
+    chatHistory.pop();
+    if (d.status === 'success') {
+      chatHistory.push({role:'assistant', content: d.data.reply, sources: d.data.sources || []});
+    } else {
+      chatHistory.push({role:'assistant', content: '⚠️ ' + (d.detail || 'Error from backend')});
+    }
+  } catch(e) {
+    chatHistory.pop();
+    chatHistory.push({role:'assistant', content:'⚠️ Backend not reachable. Make sure docker compose is running.'});
+  }
+
+  chatBusy = false;
+  if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send →'; }
+  renderMessages();
+}
+
+// ── Notification ─────────────────────────────────────────────────
+function showNotif(msg, type='success') {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = `notif ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Start ────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
