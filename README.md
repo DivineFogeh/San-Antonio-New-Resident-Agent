@@ -5,6 +5,8 @@ Full-stack conversational AI assistant helping new San Antonio residents set up 
 ---
 
 ## Project Structure
+
+```
 San-Antonio-New-Resident-Agent/
 ├── backend/          # Oghenefejiro Fogeh — FastAPI, PostgreSQL, Redis, Docker
 ├── crawler/          # Tobi Oladunjoye — Web crawling, ChromaDB, AI Agent, LLM
@@ -16,6 +18,7 @@ San-Antonio-New-Resident-Agent/
 ├── Makefile          # make reproduce, make test, make lint, make serve
 ├── CONTRIBUTIONS.md  # Team roles and contribution breakdown
 └── README.md
+```
 
 ---
 
@@ -26,7 +29,6 @@ San-Antonio-New-Resident-Agent/
 ```bash
 git clone https://github.com/DivineFogeh/San-Antonio-New-Resident-Agent.git
 cd San-Antonio-New-Resident-Agent
-git checkout develop
 ```
 
 **Terminal 1 — Backend:**
@@ -47,11 +49,13 @@ python server.py --host 0.0.0.0 --port 8001
 ```
 ✅ Crawler API: http://localhost:8001/docs
 
-**Frontend:**
+**Terminal 3 — Frontend:**
 ```bash
-# Open frontend/index.html in your browser (double-click)
+cd frontend
+python -m http.server 3000
+# Open http://localhost:3000 in your browser
 ```
-✅ Web UI: no server needed, just open the HTML file
+✅ Web UI: http://localhost:3000
 
 ---
 
@@ -65,7 +69,7 @@ python server.py --host 0.0.0.0 --port 8001
 
 ---
 
-## Backend (Divine)
+## Backend (Oghenefejiro)
 
 FastAPI backend with PostgreSQL, Redis, and Docker. Manages user sessions, checklist progress, and routes frontend requests to the AI agent.
 
@@ -119,15 +123,18 @@ Web crawling, ChromaDB knowledge base, and UTSA Llama LLM agent. Exposes RAG-pow
 
 ---
 
-## Frontend (Kemi)
+## Frontend (Oluwakemi)
 
 Web-based UI with multi-step enrollment forms, AI chat interface, and live progress dashboard.
 
 ### How to run
+
+```bash
 cd frontend
 python -m http.server 3000
 # Open http://localhost:3000 in your browser
-Make sure the backend is running at `http://localhost:8000` first.
+# Make sure the backend is running at http://localhost:8000 first
+```
 
 ### Features
 - Multi-step validated forms for CPS Energy, SAWS, and City of SA
