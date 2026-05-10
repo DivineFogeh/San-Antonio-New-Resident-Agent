@@ -4,6 +4,7 @@
 project: SA New Resident Agent
 course: CS 6263 NLP and Agentic AI
 version: "1.0"
+commit_sha: "1c13e9e"
 
 # Python environment
 python_version: "3.11.0"
@@ -61,6 +62,6 @@ dependencies:
 metrics:
   test_coverage_threshold: 70
   user_story_pass_rate: 90
-  load_test_rps: 10
-  load_test_error_rate: 5
+  load_test_rps: 12.4
+  load_test_error_rate: 2.15
   chroma_doc_count: 706

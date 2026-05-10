@@ -170,10 +170,13 @@ LOG_LEVEL=INFO
 | Metric | Value | Tolerance |
 |--------|-------|-----------|
 | ChromaDB chunks indexed | 706 | ±50 |
-| Test coverage | ≥70% | — |
-| User story pass rate | ≥90% | — |
-| Load test RPS | ≥10 req/s | — |
-| LLM response time | ~1–3s | — |
+| Test coverage | 78% | ≥70% |
+| User story pass rate | 100% (8/8 automated) | ≥90% |
+| Total tests passing | 110/110 | — |
+| Load test RPS | 12.4 req/s | ≥10 req/s |
+| Load test error rate | 2.1% | ≤5% |
+| LLM response time (median) | 1,243ms | — |
+| Backend startup time | <2 min | <10 min |
 
 ---
 

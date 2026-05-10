@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "sa-resident-agent"
+version = "1.0.0"
+description = "SA New Resident Agent — Web Crawling, Knowledge Base, AI Agent Layer"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "W", "I"]
+ignore = ["E501", "F401", "E402"]
+exclude = ["tests/", "data/", "*.egg-info"]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["F811", "F401"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+exclude = '''
+/(
+    \.git
+  | data
+  | \.egg-info
+)/
+'''
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_return_any = false
+warn_unused_configs = true
+exclude = ["tests/", "data/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "user_story: marks tests as user story acceptance tests",
+    "integration: marks tests as integration tests",
+    "edge: marks tests as edge case tests",
+    "load: marks tests as load tests",
+]
